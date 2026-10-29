@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>賭場の掟</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+  /* Layout: 賭場のロビーに8つの勝負札（広い画面は4列・タブレット縦は2列・スマホは1列）を並べ、押すとルールブックの紙面が開く */
+  :root {
+    --bg: #0e1b2f;
+    --panel: #11233c;
+    --panel-deep: #0a1526;
+    --line: #4776b0;
+    --line-soft: #27507f;
+    --ink: #eef3fa;
+    --muted: #b4c6dd;
+    --accent: #9cc6f2;
+    --seal: #b23a2e;
+    --felt-1: #245a92;
+    --felt-2: #173f6b;
+    --felt-3: #0f2b4b;
+    --font-display: "Yuji Syuku", "HGP行書体", "Yu Mincho", "Hiragino Mincho ProN", serif;
+    --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg) url(seigaiha.svg);
+    background-size: 56px 28px;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .wrap {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding-block: 28px 40px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+
+  /* ===== 見出し ===== */
+  .masthead {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 18px;
+    align-items: center;
+    padding: 18px 20px;
+    background: linear-gradient(180deg, rgba(10, 21, 38, .82), rgba(17, 35, 60, .82));
+    border: 1px solid var(--line);
+    outline: 1px solid var(--line-soft);
+    outline-offset: -5px;
+    border-radius: 6px;
+    margin-bottom: 26px;
+  }
+
+  .masthead img {
+    grid-row: span 2;
+    width: 68px;
+    height: 68px;
+  }
+
+  .kicker {
+    margin: 0;
+    color: var(--accent);
+    font-size: 13px;
+    letter-spacing: .25em;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(40px, 7vw, 58px);
+    line-height: 1.05;
+    letter-spacing: .06em;
+    text-shadow: 0 0 14px rgba(80, 150, 230, .45);
+    text-wrap: balance;
+  }
+
+  .lead {
+    grid-column: 1 / -1;
+    margin: 8px 0 0;
+    color: var(--muted);
+  }
+
+  /* ===== 勝負札の一覧 ===== */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .tile {
+    display: grid;
+    grid-template-rows: 136px auto;
+    min-width: 0;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: inherit;
+    text-decoration: none;
+    overflow: hidden;
+    transition: transform .15s ease, border-color .15s ease;
+  }
+
+  .tile:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+  }
+
+  .tile:focus-visible,
+  .btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .art {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 50% 55%, var(--felt-1), var(--felt-2) 60%, var(--felt-3));
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .tag {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    padding: 1px 9px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: rgba(10, 21, 38, .75);
+    color: var(--accent);
+    font-size: 11.5px;
+    letter-spacing: .08em;
+  }
+
+  .fan {
+    display: flex;
+    align-items: center;
+  }
+
+  .fan img {
+    width: 48px;
+    margin: 0 -9px;
+    transform: rotate(var(--r, 0deg)) translateY(var(--y, 0px));
+    filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, .55));
+  }
+
+  .fan .die {
+    width: 42px;
+    margin: 0 3px;
+  }
+
+  .fan .gun {
+    width: 168px;
+    margin: 0;
+  }
+
+  .fan .crown {
+    width: 34px;
+    margin: 0 10px 0 0;
+    filter: none;
+    opacity: .9;
+  }
+
+  .badge-21 {
+    margin-left: 14px;
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--ink);
+  }
+
+  .body {
+    display: grid;
+    gap: 6px;
+    padding: 12px 16px 16px;
+    min-width: 0;
+  }
+
+  .tile h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  .tile h2 small {
+    display: block;
+    margin-top: 2px;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    color: var(--accent);
+    letter-spacing: .06em;
+  }
+
+  .goal {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 2px 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--accent);
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .meta .stars-off {
+    color: #4d6c93;
+  }
+
+  /* ===== ルールブックの紙面 ===== */
+  .detail-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    margin-bottom: 16px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--panel-deep);
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 14.5px;
+  }
+
+  .btn:hover {
+    border-color: var(--accent);
+  }
+
+  .detail-title {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .detail-title h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(28px, 5vw, 38px);
+    line-height: 1.15;
+  }
+
+  .sheet {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .sheet img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1800 / 2546;
+    background: var(--panel-deep);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+  }
+
+  .hint {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 12.5px;
+    text-align: center;
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    max-width: 860px;
+    margin: 18px auto 0;
+  }
+
+  .pager .btn {
+    justify-content: space-between;
+    min-height: 56px;
+    min-width: 0;
+  }
+
+  .pager .btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pager small {
+    color: var(--muted);
+    font-size: 11.5px;
+  }
+
+  .pager .next {
+    text-align: right;
+  }
+
+  footer {
+    margin-top: 32px;
+    color: #6f8cb3;
+    font-size: 11.5px;
+    text-align: center;
+  }
+
+  /* ===== タブレット縦：2列 ===== */
+  @media (max-width: 999px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tile h2 {
+      font-size: 26px;
+    }
+  }
+
+  /* ===== スマホ：札を横長にして1列 ===== */
+  @media (max-width: 599px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .tile {
+      grid-template-columns: 124px minmax(0, 1fr);
+      grid-template-rows: auto;
+    }
+
+    .art {
+      border-bottom: none;
+      border-right: 1px solid var(--line-soft);
+      min-height: 132px;
+    }
+
+    .tag {
+      left: 6px;
+      top: 6px;
+      font-size: 10.5px;
+      padding: 0 7px;
+    }
+
+    .fan img {
+      width: 36px;
+      margin: 0 -8px;
+    }
+
+    .fan .die {
+      width: 30px;
+      margin: 0 1px;
+    }
+
+    .fan .gun {
+      width: 108px;
+    }
+
+    .fan .crown {
+      width: 24px;
+      margin-right: 6px;
+    }
+
+    .badge-21 {
+      margin-left: 8px;
+      font-size: 20px;
+    }
+
+    .tile h2 {
+      font-size: 23px;
+    }
+
+    .masthead img {
+      width: 52px;
+      height: 52px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tile {
+      transition: none;
+    }
+
+    .tile:hover {
+      transform: none;
+    }
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <img src="emblem.png" alt="">
+    <p class="kicker">高専祭 カジノ　ルールブック</p>
+    <h1>賭場の掟</h1>
+    <p class="lead">遊びたい勝負を選んでくれ。押すと、その勝負のルールブックが開く。</p>
+  </header>
+
+  <main id="lobby">
+    <nav class="grid" aria-label="ゲームを選ぶ">
+      <a class="tile" href="#chinchiro" data-name="チンチロ">
+        <div class="art"><span class="tag">サイコロ</span>
+          <div class="fan"><img class="die" src="die4.png" alt="" style="--r:-14deg"><img class="die" src="die5.png" alt="" style="--r:8deg;--y:-6px"><img class="die" src="die6.png" alt="" style="--r:-4deg"></div>
+        </div>
+        <div class="body">
+          <h2>チンチロ</h2>
+          <p class="goal">サイコロ3つで役を作り、親（ディーラー）より強ければ勝ち。</p>
+          <ul class="meta"><li>約5分</li><li>1〜4人</li><li>むずかしさ ★<span class="stars-off">★★</span></li></ul>
+        </div>
+      </a>
+
+      <a class="tile" href="#roulette" data-name="ロシアンルーレット">
+        <div class="art"><span class="tag">度胸試し</span>
+          <div class="fan"><img class="gun" src="balloon_gun.png" alt=""></div>
+        </div>
+        <div class="body">
+          <h2>ロシアンルーレット</h2>
+          <p class="goal">風船のついた銃を順番に回して引き金を引く。割った人の負け。</p>
+          <ul class="meta"><li>約5分</li><li>2〜6人</li><li>むずかしさ ★<span class="stars-off">★★</span></li></ul>
+        </div>
+      </a>
+
+      <a class="tile" href="#chohan" data-name="丁半">
+        <div class="art"><span class="tag">サイコロ</span>
+          <div class="fan"><img class="die" src="die3.png" alt="" style="--r:-10deg"><img class="die" src="die5.png" alt="" style="--r:12deg;--y:-4px"></div>
+        </div>
+        <div class="body">
+          <h2>丁半<small>ちょうはん</small></h2>
+          <p class="goal">サイコロ2つの合計が丁（偶数）か半（奇数）かを当てる。</p>
+          <ul class="meta"><li>約3分</li><li>1〜6人</li><li>むずかしさ ★<span class="stars-off">★★</span></li></ul>
+        </div>
+      </a>
+
+      <a class="tile" href="#babanuki" data-name="ババ抜き">
+        <div class="art"><span class="tag">トランプ</span>
+          <div class="fan"><img src="cardBack_blue2.png" alt="" style="--r:-10deg"><img src="cardJoker.png" alt="" style="--r:8deg;--y:-4px"></div>
+        </div>
+        <div class="body">
+          <h2>ババ抜き</h2>
+          <p class="goal">ペアを捨てて手札をなくす。最後にババを持っていた人の負け。</p>
+          <ul class="meta"><li>約10分</li><li>2〜6人</li><li>むずかしさ ★<span class="stars-off">★★</span></li></ul>
+        </div>
+      </a>
+
+      <a class="tile" href="#poker-draw" data-name="ポーカー" data-sub="5カードドロー">
+        <div class="art"><span class="tag">トランプ</span>
+          <div class="fan"><img src="cardSpadesQ.png" alt="" style="--r:-14deg;--y:4px"><img src="cardSpadesK.png" alt="" style="--r:0deg;--y:-4px"><img src="cardSpadesA.png" alt="" style="--r:14deg;--y:4px"></div>
+        </div>
+        <div class="body">
+          <h2>ポーカー<small>5カードドロー</small></h2>
+          <p class="goal">5枚の札で強い役を作り、ディーラーと勝負する。</p>
+          <ul class="meta"><li>約5分</li><li>1〜4人</li><li>むずかしさ ★★<span class="stars-off">★</span></li></ul>
+        </div>
+      </a>
+
+      <a class="tile" href="#poker-holdem" data-name="ポーカー" data-sub="テキサスホールデム">
+        <div class="art"><span class="tag">トランプ</span>
+          <div class="fan"><img src="cardHeartsA.png" alt="" style="--r:-8deg"><img src="cardSpadesQ.png" alt="" style="--r:8deg;--y:-4px"></div>
+        </div>
+        <div class="body">
+          <h2>ポーカー<small>テキサスホールデム</small></h2>
+          <p class="goal">手札2枚と場札5枚の中から、強い役を作って勝負する。</p>
+          <ul class="meta"><li>約8分</li><li>1〜4人</li><li>むずかしさ ★★★</li></ul>
+        </div>
+      </a>
+
+      <a class="tile" href="#daifugo" data-name="大富豪">
+        <div class="art"><span class="tag">トランプ</span>
+          <div class="fan"><img class="crown" src="crown.png" alt=""><img src="cardClubs2.png" alt="" style="--r:-6deg"><img src="cardJoker.png" alt="" style="--r:10deg;--y:-4px"></div>
+        </div>
+        <div class="body">
+          <h2>大富豪<small>だいふごう</small></h2>
+          <p class="goal">強い札で場を制して、誰よりも早く手札を出し切る。</p>
+          <ul class="meta"><li>約15分</li><li>3〜6人</li><li>むずかしさ ★★<span class="stars-off">★</span></li></ul>
+        </div>
+      </a>
+
+      <a class="tile" href="#blackjack" data-name="ブラックジャック">
+        <div class="art"><span class="tag">トランプ</span>
+          <div class="fan"><img src="cardSpadesA.png" alt="" style="--r:-8deg"><img src="cardHeartsK.png" alt="" style="--r:8deg;--y:-4px"><span class="badge-21">＝21</span></div>
+        </div>
+        <div class="body">
+          <h2>ブラックジャック</h2>
+          <p class="goal">札の合計を21に近づける。21を超えたら即負け。</p>
+          <ul class="meta"><li>約5分</li><li>1〜4人</li><li>むずかしさ ★★<span class="stars-off">★</span></li></ul>
+        </div>
+      </a>
+    </nav>
+  </main>
+
+  <section id="detail" hidden aria-live="polite">
+    <div class="detail-bar">
+      <a class="btn" href="#lobby">← 一覧にもどる</a>
+      <div class="detail-title">
+        <h2 id="detail-name"></h2>
+        <ul class="meta" id="detail-meta"></ul>
+      </div>
+    </div>
+    <figure class="sheet">
+      <img id="detail-img" alt="">
+    </figure>
+    <p class="hint">文字が小さいときは、指で広げると拡大できます。</p>
+    <nav class="pager" aria-label="ほかのゲーム">
+      <a class="btn" id="prev" href="#"><span>←</span><span><small>前のゲーム</small><br><span id="prev-name"></span></span></a>
+      <a class="btn next" id="next" href="#"><span><small>次のゲーム</small><br><span id="next-name"></span></span><span>→</span></a>
+    </nav>
+  </section>
+
+  <footer>カード・サイコロ・アイコンの素材：Kenney（kenney.nl）CC0</footer>
+</div>
+
+<script>
+  (function () {
+    const lobby = document.getElementById("lobby");
+    const detail = document.getElementById("detail");
+    const tiles = Array.from(document.querySelectorAll(".tile"));
+    const games = tiles.map((t) => ({
+      id: t.getAttribute("href").slice(1),
+      name: t.dataset.name,
+      sub: t.dataset.sub || "",
+      meta: t.querySelector(".meta").innerHTML,
+      tile: t,
+    }));
+    let lastId = null;
+
+    function label(g) {
+      return g.sub ? `${g.name}（${g.sub}）` : g.name;
+    }
+
+    function show(id) {
+      const i = games.findIndex((g) => g.id === id);
+      if (i < 0) {
+        detail.hidden = true;
+        lobby.hidden = false;
+        const back = games.find((g) => g.id === lastId);
+        if (back) {
+          back.tile.scrollIntoView({ block: "center" });
+          back.tile.focus({ preventScroll: true });
+        } else {
+          window.scrollTo(0, 0);
+        }
+        return;
+      }
+      const g = games[i];
+      const prev = games[(i - 1 + games.length) % games.length];
+      const next = games[(i + 1) % games.length];
+      document.getElementById("detail-name").textContent = label(g);
+      document.getElementById("detail-meta").innerHTML = g.meta;
+      const img = document.getElementById("detail-img");
+      img.src = `${g.id}.jpg`;
+      img.alt = `${label(g)}のルールブック（目的・卓の配置図・遊び方・ルール・掟・得点と景品）`;
+      document.getElementById("prev").setAttribute("href", `#${prev.id}`);
+      document.getElementById("prev-name").textContent = label(prev);
+      document.getElementById("next").setAttribute("href", `#${next.id}`);
+      document.getElementById("next-name").textContent = label(next);
+      lobby.hidden = true;
+      detail.hidden = false;
+      lastId = g.id;
+      window.scrollTo(0, 0);
+    }
+
+    window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+    show(location.hash.slice(1));
+  })();
+</script>
+
+</body>
+</html>
